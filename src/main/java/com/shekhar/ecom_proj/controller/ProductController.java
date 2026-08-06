@@ -59,7 +59,7 @@ public class ProductController {
     public ResponseEntity<?> getImageByProductId(@PathVariable int productId){
        try {
            Product product = service.getProductById(productId);
-           byte[] imageFile = product.getImageData();
+           String imageFile = product.getImageUrl();
            return  ResponseEntity.ok()
                    .body(imageFile);
        } catch (Exception e) {

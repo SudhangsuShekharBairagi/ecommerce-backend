@@ -19,11 +19,13 @@ public class ProductService {
     private final ProductRepo repo;
     private final UsersRepository usersRepository;
     private final CartItemsRepository cartItemsRepository;
+    private final CloudinaryService cloudinaryService;
 
-    public ProductService(ProductRepo repo, UsersRepository usersRepository, CartItemsRepository cartItemsRepository) {
+    public ProductService(ProductRepo repo, UsersRepository usersRepository, CartItemsRepository cartItemsRepository, CloudinaryService cloudinaryService) {
         this.repo = repo;
         this.usersRepository = usersRepository;
         this.cartItemsRepository = cartItemsRepository;
+        this.cloudinaryService = cloudinaryService;
     }
 
     public List<Product> getAllProducts() {
@@ -35,9 +37,16 @@ public class ProductService {
     }
 
     public Product addProduct(Product product, MultipartFile imageFile) throws IOException {
-        product.setImageName(imageFile.getOriginalFilename());
-        product.setImageType(imageFile.getContentType());
-        product.setImageData(imageFile.getBytes());
+//        product.setImageName(imageFile.getOriginalFilename());
+//        product.setImageType(imageFile.getContentType());
+//        product.setImageData(imageFile.getBytes());
+//        if (imageFile.getSize() > 5 * 1024 * 1024) { // 5 MB
+//            throw new RuntimeException("Image size cannot exceed 5 MB");
+//        }
+        String imageUrl = cloudinaryService.uploadImage(imageFile);
+        product.setImageUrl(imageUrl);
+
+
         return repo.save(product);
 
     }
@@ -65,7 +74,9 @@ public class ProductService {
         // 1. Fetch existing product to prevent losing data
         Product existingProduct = repo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
-
+//        if (imageFile.getSize() > 5 * 1024 * 1024) { // 5 MB
+//            throw new RuntimeException("Image size cannot exceed 5 MB");
+//        }
         // 2. Update basic fields
         existingProduct.setName(product.getName());
         existingProduct.setDescription(product.getDescription());
@@ -80,9 +91,12 @@ public class ProductService {
 
         // 3. Handle Image Logic
         if (imageFile != null && !imageFile.isEmpty()) {
-            existingProduct.setImageName(imageFile.getOriginalFilename());
-            existingProduct.setImageType(imageFile.getContentType());
-            existingProduct.setImageData(imageFile.getBytes());
+//            existingProduct.setImageName(imageFile.getOriginalFilename());
+//            existingProduct.setImageType(imageFile.getContentType());
+//            existingProduct.setImageData(imageFile.getBytes());
+            String imageUrl = cloudinaryService.uploadImage(imageFile);
+            product.setImageUrl(imageUrl);
+
         }
         // If imageFile is empty, the existingProduct keeps its current image data
 

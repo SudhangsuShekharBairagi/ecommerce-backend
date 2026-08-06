@@ -29,11 +29,13 @@ public class Product {
     private boolean available;
     private int quantity;
 
-    private String imageName;
-    private String imageType;
+//    private String imageName;
+//    private String imageType;
+//
+//    @Lob
+//    private byte[] imageData;
 
-    @Lob
-    private byte[] imageData;
+    private String imageUrl;
 
     @Version
     private Long version;
