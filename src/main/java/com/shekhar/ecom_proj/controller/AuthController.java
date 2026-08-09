@@ -12,6 +12,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -27,9 +30,9 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody Users user){
+    public ResponseEntity<?> register(@RequestPart Users user,   @RequestPart(required = false) MultipartFile imageFile){
         try{
-            Users registeredUser = userService.userRegistration(user);
+            Users registeredUser = userService.userRegistration(user, imageFile);
 
             registeredUser.setPassword(null);
 
@@ -37,7 +40,7 @@ public class AuthController {
                     registeredUser,
                     HttpStatus.CREATED
             );
-        }catch (RuntimeException e){
+        }catch (RuntimeException | IOException e){
             return new ResponseEntity<>(
                     e.getMessage(),
                     HttpStatus.BAD_REQUEST

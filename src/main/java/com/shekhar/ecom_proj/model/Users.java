@@ -25,6 +25,7 @@ public class Users {
     private String role;
     @Column(nullable = false)
     private String password;
+    private String imageUrl;
     @Embedded
     private UserAddress userAddress;
 }
