@@ -7,6 +7,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/profile")
@@ -39,6 +42,17 @@ public class ProfileController {
                     );
         }
 
-
+    }
+    @PutMapping("/editImage")
+    public ResponseEntity<?> updateImage(Authentication authentication, @RequestBody MultipartFile imageFile){
+       try{
+           userService.updateImage(authentication,imageFile);
+           return ResponseEntity.ok("Update Successfull");
+       } catch (Exception e) {
+           return new ResponseEntity<>(
+                   e.getMessage(),
+                   HttpStatus.BAD_REQUEST
+           );
+       }
     }
 }

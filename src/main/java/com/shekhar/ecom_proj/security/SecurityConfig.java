@@ -44,6 +44,7 @@ public class SecurityConfig {
                        .requestMatchers("/api/auth/**").permitAll()
                        .requestMatchers(HttpMethod.GET, "/api/products").permitAll()
                        .requestMatchers(HttpMethod.GET, "/api/product/*/image").permitAll()
+                       .requestMatchers(HttpMethod.GET,"api/health").permitAll()
                        .anyRequest().authenticated()
                )
                 .addFilterBefore(jwtFilter,

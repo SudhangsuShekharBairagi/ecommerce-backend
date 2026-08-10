@@ -5,6 +5,7 @@ import com.shekhar.ecom_proj.dto.ProfileUserDTO;
 import com.shekhar.ecom_proj.model.UserAddress;
 import com.shekhar.ecom_proj.model.Users;
 import com.shekhar.ecom_proj.repo.UsersRepository;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,7 +26,7 @@ public class UserService {
 
     public Users userRegistration(Users user, MultipartFile imageFile) throws IOException {
         if(usersRepository.findByEmail(user.getEmail()).isPresent()){
-                throw new RuntimeException("Email Already registrar");
+            throw new RuntimeException("Email Already registrar");
         }
         user.setPassword(
                 passwordEncoder.encode(user.getPassword())
@@ -40,7 +41,6 @@ public class UserService {
         }
 
         return usersRepository.save(user);
-
     }
 
     public ProfileUserDTO getProfileDetails(String email) {
@@ -72,5 +72,15 @@ public class UserService {
         address.setStreet(profileEditDto.getStreet());
 
         return  usersRepository.save(user);
+    }
+
+    public void updateImage(Authentication authentication, MultipartFile imageFile) throws IOException {
+        Users user = usersRepository.findByEmail(authentication.getName()).orElseThrow(() -> new RuntimeException("Something went wrong"));
+        if( imageFile != null && !imageFile.isEmpty()){
+            String imageUrl = cloudinaryService.uploadImage(imageFile);
+            user.setImageUrl(imageUrl);
+        }
+
+        usersRepository.save(user);
     }
 }
