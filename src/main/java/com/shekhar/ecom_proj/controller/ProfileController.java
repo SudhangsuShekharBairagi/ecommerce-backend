@@ -44,7 +44,7 @@ public class ProfileController {
 
     }
     @PutMapping("/editImage")
-    public ResponseEntity<?> updateImage(Authentication authentication, @RequestBody MultipartFile imageFile){
+    public ResponseEntity<?> updateImage(Authentication authentication, @RequestPart MultipartFile imageFile){
        try{
            userService.updateImage(authentication,imageFile);
            return ResponseEntity.ok("Update Successfull");
