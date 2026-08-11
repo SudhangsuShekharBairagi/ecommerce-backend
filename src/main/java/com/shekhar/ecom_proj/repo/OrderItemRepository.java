@@ -1,4 +1,7 @@
-package com.shekhar.ecom_proj.model;
+package com.shekhar.ecom_proj.repo;
 
-public interface OrderItemRepository extends org.springframework.data.jpa.repository.JpaRepository<com.shekhar.ecom_proj.model.OrderItem, java.lang.Long> {
+import com.shekhar.ecom_proj.model.OrderItem;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
 }
