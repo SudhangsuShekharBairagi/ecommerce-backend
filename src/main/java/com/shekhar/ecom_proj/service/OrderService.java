@@ -2,6 +2,7 @@ package com.shekhar.ecom_proj.service;
 
 import com.shekhar.ecom_proj.dto.OrderItemRequest;
 import com.shekhar.ecom_proj.dto.OrderRequest;
+import com.shekhar.ecom_proj.dto.UserOrderDto;
 import com.shekhar.ecom_proj.enums.OrderStatus;
 import com.shekhar.ecom_proj.model.Order;
 import com.shekhar.ecom_proj.model.OrderItem;
@@ -10,6 +11,8 @@ import com.shekhar.ecom_proj.model.Users;
 import com.shekhar.ecom_proj.repo.OrderRepository;
 import com.shekhar.ecom_proj.repo.ProductRepo;
 import com.shekhar.ecom_proj.repo.UsersRepository;
+import com.shekhar.ecom_proj.util.OrderNumberGenerator;
+import jakarta.transaction.Transactional;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
@@ -23,17 +26,23 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final UsersRepository usersRepository;
     private final ProductRepo productRepo;
+    private final OrderNumberGenerator orderNumberGenerator;
 
-    public OrderService(OrderRepository orderRepository, UsersRepository usersRepository, ProductRepo productRepo) {
+    public OrderService(OrderRepository orderRepository, UsersRepository usersRepository, ProductRepo productRepo, OrderNumberGenerator orderNumberGenerator) {
         this.orderRepository = orderRepository;
         this.usersRepository = usersRepository;
         this.productRepo = productRepo;
+        this.orderNumberGenerator = orderNumberGenerator;
+
     }
 
-    public Order createOrder(OrderRequest orderRequest,Authentication authentication) {
+    @Transactional
+    public String createOrder(OrderRequest orderRequest,Authentication authentication) {
         Users user = usersRepository.findByEmail(authentication.getName()).orElseThrow(() -> new RuntimeException("User not found"));
 
+        String orderNumber = orderNumberGenerator.generate();
         Order order = new Order();
+        order.setOrderNumber(orderNumber);
         order.setUser(user);
         order.setUserAddress(orderRequest.getUserAddress());
         order.setCreatedAt(LocalDateTime.now());
@@ -74,12 +83,12 @@ public class OrderService {
 
 
         order.setItems(orderItems);
-
-        return orderRepository.save(order);
+        orderRepository.save(order);
+        return orderNumber;
 
     }
 
-    public List<Order> getMyOrders(Authentication authentication) {
+    public List<UserOrderDto> getMyOrders(Authentication authentication) {
         Users user = usersRepository.findByEmail(authentication.getName()).orElseThrow(() -> new RuntimeException("User not found"));
 
        List<Order> orders = orderRepository.findByUser(user);
@@ -87,7 +96,19 @@ public class OrderService {
        if(orders.isEmpty())
            throw new RuntimeException("No orders available");
 
-        return orders;
+
+
+
+        return orders.stream()
+                .map(order -> UserOrderDto.builder()
+                        .orderNumber(order.getOrderNumber())
+                        .totalAmount(order.getTotalAmount())
+                        .status(order.getStatus())
+                        .userAddress(order.getUserAddress())
+                        .createdAt(order.getCreatedAt())
+                        .items(order.getItems())
+                        .build())
+                .toList();
     }
 
     public Order getOrderById(Long orderId) {
@@ -96,7 +117,7 @@ public class OrderService {
     }
 
     public Order cancelOrder(
-            Long orderId,
+            String orderNumber,
             Authentication authentication
     ) {
 
@@ -104,7 +125,7 @@ public class OrderService {
                 .findByEmail(authentication.getName())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Order order = orderRepository.findById(orderId)
+        Order order = orderRepository.findByOrderNumber(orderNumber)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
         if (!order.getUser().getUserId().equals(user.getUserId())) {
