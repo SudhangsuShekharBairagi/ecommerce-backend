@@ -38,6 +38,7 @@ public class JwtFilter extends OncePerRequestFilter {
             return;
         }
         String jwt = authHeader.substring(7);
+        try {
         String username = jwtService.extractUsername(jwt);
 
         if (username != null &&
@@ -64,5 +65,28 @@ public class JwtFilter extends OncePerRequestFilter {
         }
         filterChain.doFilter(request, response);
 
+        } catch (Exception e) {
+
+            // Any unexpected JWT authentication error
+            sendUnauthorizedResponse(
+                    response,
+                    "Authentication failed"
+            );
+        }
+
+    }
+    private void sendUnauthorizedResponse(
+            HttpServletResponse response,
+            String message) throws IOException {
+
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
+        response.getWriter().write(
+                "{\"message\":\"" + message + "\"}"
+        );
     }
 }
+
+
