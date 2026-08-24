@@ -23,12 +23,15 @@ import java.util.List;
 
 @Service
 public class OrderService {
+
+    private final ProductRepo repo;
     private final OrderRepository orderRepository;
     private final UsersRepository usersRepository;
     private final ProductRepo productRepo;
     private final OrderNumberGenerator orderNumberGenerator;
 
-    public OrderService(OrderRepository orderRepository, UsersRepository usersRepository, ProductRepo productRepo, OrderNumberGenerator orderNumberGenerator) {
+    public OrderService(ProductRepo repo, OrderRepository orderRepository, UsersRepository usersRepository, ProductRepo productRepo, OrderNumberGenerator orderNumberGenerator) {
+        this.repo = repo;
         this.orderRepository = orderRepository;
         this.usersRepository = usersRepository;
         this.productRepo = productRepo;
@@ -63,6 +66,10 @@ public class OrderService {
 
             if (itemRequest.getQuantity() <= 0) {
                 throw new RuntimeException("Invalid quantity");
+            }
+            int updatedRows = repo.decreaseStock(itemRequest.getProductId(), itemRequest.getQuantity());
+            if (updatedRows == 0) {
+                throw new RuntimeException("Product is Out of Stock");
             }
 
             BigDecimal price = product.getPrice();
